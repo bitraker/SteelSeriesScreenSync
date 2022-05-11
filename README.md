@@ -14,9 +14,15 @@ The GUI is very simple and should be self explanatory.
 
 ## How to use it
 
-There are two ways:
+There are two ways to get it up and running:
 1. Download and review the code, install the required modules `requirements.txt` and run it.
 2. Download the zip file containing the executable, unpack it and run the exe file `ss-screensync.exe`. It's compiled from above code using cx-freeze.
+
+When the program runs, you should see this interface:
+![GUI Example](“gui.png”)
+
+At this point the program should have changed your Keyboard colors (provided you own a per-key SteelSeries keyboard). If not, something is wrong.
+Check the `application.log`, which is generated in the same folder as the `ss-screensync.exe` executable (or main.py file). The log is regenerated every time the program is opened.
 
 ## Known issues
 1. Compiled code is relatively large. Perhaps the size of it can be reduced.
