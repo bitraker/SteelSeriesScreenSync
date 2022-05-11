@@ -1,0 +1,4 @@
+Pillow == 8.4.0
+customtkinter == 3.11
+pywin32 == 302
+requests == 2.26.0
