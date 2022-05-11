@@ -19,7 +19,7 @@ There are two ways to get it up and running:
 2. Download the zip file containing the executable, unpack it and run the exe file `ss-screensync.exe`. It's compiled from above code using cx-freeze.
 
 When the program runs, you should see this interface:
-![GUI Example](“gui.png”)
+![GUI Example](“https://github.com/bitraker/SteelSeriesScreenSync/blob/main/gui.png”)
 
 At this point the program should have changed your Keyboard colors (provided you own a per-key SteelSeries keyboard). If not, something is wrong.
 Check the `application.log`, which is generated in the same folder as the `ss-screensync.exe` executable (or main.py file). The log is regenerated every time the program is opened.
