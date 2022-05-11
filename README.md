@@ -25,5 +25,9 @@ When the program runs, you should see this interface:
 At this point the program should have changed your Keyboard colors (provided you own a per-key SteelSeries keyboard). If not, something is wrong.
 Check the `application.log`, which is generated in the same folder as the `ss-screensync.exe` executable (or main.py file). The log is regenerated every time the program is opened.
 
+When you close the program, you settings are automatically saved to the file `settings.json`. Those settings will be automatically loaded on startup.
+
+The `config.json` file contains the path to the `coreProps.json` file. If your file is not in the standard location. You should edit this file to point to the correct location of the file.
+
 ## Known issues
 1. Compiled code is relatively large. Perhaps the size of it can be reduced.
