@@ -16,4 +16,7 @@ The GUI is very simple and should be self explanatory.
 
 There are two ways:
 1. Download and review the code, install the required modules `requirements.txt` and run it.
-2. Download the executable compiled from above code and run it.
+2. Download the zip file containing the executable, unpack it and run the exe file `ss-screensync.exe`. It's compiled from above code using cx-freeze.
+
+## Known issues
+1. Compiled code is relatively large. Perhaps the size of it can be reduced.
