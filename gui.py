@@ -2,6 +2,12 @@ import tkinter
 import tkinter.messagebox
 import customtkinter
 
+import sys
+
+import pystray # tray
+from pystray import MenuItem as item # tray
+from PIL import Image # tray
+
 from functools import partial
 
 customtkinter.set_appearance_mode("System")
@@ -21,9 +27,13 @@ class ScreenSyncApp(customtkinter.CTk):
         # SETUP
         self.title("Bitraker - SteelSeries Screen Sync")
         self.geometry(f"{self.WIDTH}x{self.HEIGHT}")
-        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.protocol("WM_DELETE_WINDOW", self.minimize_to_tray)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
+
+        # TRAY
+        self.tray_image=Image.open("logo.ico")
+        self.menu=(item("Quit", self.quit), item("Show", self.show_window))
 
         # FRAME
         self.frame = customtkinter.CTkFrame(master=self,corner_radius=5)
@@ -35,7 +45,11 @@ class ScreenSyncApp(customtkinter.CTk):
                                                 text="Dark Mode",
                                                 command=self.change_mode)
         self.sw_dark_mode.grid(row=10, column=0, pady=10, padx=20, sticky="w")
-        self.sw_dark_mode.select()
+
+        self.sw_start_in_tray = customtkinter.CTkSwitch(master=self.frame,
+                                                text="Start in Tray",
+                                                command=self.set_traying)
+        self.sw_start_in_tray.grid(row=10, column=1, pady=10, padx=20, sticky="w")
 
         # LABELS
         self.lbl_speed = customtkinter.CTkLabel(master=self.frame,
@@ -81,9 +95,6 @@ class ScreenSyncApp(customtkinter.CTk):
                                                 command=self.set_low_light)
         self.slider_low_light.grid(row=2, column=0, columnspan=2, pady=10, padx=20, sticky="we")
 
-        self.slider_speed.set(10)
-        self.slider_brightness.set(100)
-
         # CHECK BOXES
         self.chk_low_light = customtkinter.CTkCheckBox(master=self.frame,
                                                       text="Low Light", command=self.toggle_low_light)
@@ -92,7 +103,6 @@ class ScreenSyncApp(customtkinter.CTk):
         self.chk_fade_effect = customtkinter.CTkCheckBox(master=self.frame,
                                                      text="Fade Effect", command=self.toggle_fading)
         self.chk_fade_effect.grid(row=6, column=1, pady=10, padx=20, sticky="w")
-        self.chk_fade_effect.select()
 
         # BUTTONS
         self.btn_preset_smooth = customtkinter.CTkButton(master=self.frame,
@@ -147,13 +157,33 @@ class ScreenSyncApp(customtkinter.CTk):
             customtkinter.set_appearance_mode("light")
             self.screensync.dark_mode = False
 
+    def set_traying(self):
+        if self.sw_start_in_tray.get() == 1:
+            self.screensync.start_in_tray = True
+        else:
+            self.screensync.start_in_tray = False     
+
     def change_preset(self, preset):
         self.screensync.load_preset(preset)
         self.update_gui()
 
-    def on_closing(self, event=0):
+    def minimize_to_tray(self):
+        self.icon=pystray.Icon("SS-ScreenSync", self.tray_image, "SteelSeries ScreenSync", self.menu)
+        self.withdraw()
+        self.tray_image=Image.open("logo.ico")
+        self.icon.run()
+
+    def show_window(self):
+        self.icon.stop()
+        self.deiconify()
+
+    def quit(self):
+        self.on_closing()
+
+    def on_closing(self):
         self.screensync.save()
         self.screensync.running = False
+        self.icon.stop()
         self.destroy()
 
     def update_gui(self):
@@ -175,9 +205,18 @@ class ScreenSyncApp(customtkinter.CTk):
             self.sw_dark_mode.select()
         else:
             self.sw_dark_mode.deselect()
+        if self.screensync.start_in_tray:
+            self.sw_start_in_tray.select()
+        else:
+            self.sw_start_in_tray.deselect()
         self.change_mode()
 
     def start(self):
         self.screensync.load()
         self.update_gui()
-        self.mainloop()
+        if self.screensync.start_in_tray:
+            self.minimize_to_tray()
+        try:
+            self.mainloop()
+        except:
+            sys.exit()

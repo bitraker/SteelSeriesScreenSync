@@ -22,9 +22,15 @@ class ScreenSync:
         self.running = False
         self.fading = False
         self.dark_mode = True
+        self.start_in_tray = False
         self.presets = {"smooth":{"speed":8,"fade":True,"brightness":100},
                         "responsive":{"speed":24,"fade":True,"brightness":100},
                         "fast":{"speed":100,"fade":False,"brightness":100}}
+        self.keyboard_bound = False
+        self.mouse_bound = False
+        self.pad_top_bound = False
+        self.pad_bot_bound = False
+        self.failed_bind_attempts = 0
 
     def save(self):
         try:
@@ -34,7 +40,8 @@ class ScreenSync:
                                     "brightness":self.bf.brightness,
                                     "low_light":self.base_color_tolerance,
                                     "low_light_enabled":self.base_color_enforce,
-                                    "dark_mode":self.dark_mode}))
+                                    "dark_mode":self.dark_mode,
+                                    "start_in_tray":self.start_in_tray}))
         except:
             self.logger.exception()
 
@@ -49,6 +56,7 @@ class ScreenSync:
                 self.base_color = [self.base_color_tolerance,self.base_color_tolerance,self.base_color_tolerance]
                 self.base_color_enforce = settings["low_light_enabled"]
                 self.dark_mode = settings["dark_mode"]
+                self.start_in_tray = settings["start_in_tray"]
         except:
             self.logger.exception()
 
@@ -105,83 +113,180 @@ class ScreenSync:
             self.logger.error("failed removing game")
             self.logger.exception()
 
-    @trypass
     def bind_keyboard(self):
         """Binds a lighting event to Engine."""
-        endpoint = f'http://{self.coreprops["address"]}/bind_game_event'
-        payload = {
-            "game" : "SCREEN_COLOR_SYNC",
-            "event": 'BITMAP_EVENT',
-            "value_optional": r'"true"',
-            "handlers": [
-                {
-                    "device-type": "rgb-per-key-zones",
-                    "zone": "all",
-                    "mode": "bitmap"
-                }
-            ]
-        }
-        requests.post(endpoint, json=payload)
+        try:
+            endpoint = f'http://{self.coreprops["address"]}/bind_game_event'
+            payload = {
+                "game" : "SCREEN_COLOR_SYNC",
+                "event": 'BITMAP_EVENT',
+                "value_optional": r'"true"',
+                "handlers": [
+                    {
+                        "device-type": "rgb-per-key-zones",
+                        "zone": "all",
+                        "mode": "bitmap"
+                    }
+                ]
+            }
+            r = requests.post(endpoint, json=payload)
+            if not r.status_code == 200:
+                self.logger.warning(f"bind_keyboard got status code {r.status_code} and {r.text}")
+                return False
+            else:
+                self.logger.info(f"bind_keyboard succeeded")
+                return True
+        except:
+            self.logger.exception()
+            self.remove_keyboard()
+            return False
 
     @trypass
+    def remove_keyboard(self):
+        self.logger.info("removing keyboard binding")
+        endpoint = f'http://{self.coreprops["address"]}/remove_game_event'
+        payload = {
+            "game" : "SCREEN_COLOR_SYNC",
+            "event": 'BITMAP_EVENT'
+        }
+        r = requests.post(endpoint, json=payload)
+        if r.status_code == 200:
+            self.keyboard_bound = False
+        else:
+            self.logger.warning(f"remove_keyboard got status code {r.status_code} and {r.text}")
+
+
     def bind_mouse(self):
         """Binds a lighting event to Engine."""
-        endpoint = f'http://{self.coreprops["address"]}/bind_game_event'
-        payload = {
-            "game" : "SCREEN_COLOR_SYNC",
-            "event": 'MOUSE_COLOR',
-            "value_optional": r'"true"',
-            "handlers": [
-                {
-                    "device-type": "mouse",
-                    "zone": "all",
-                    "color": {"red": 0, "green": 0, "blue": 0},
-                    "mode": "context-color",
-                    "context-frame-key": "color"
-                }
-            ]
-        }
-        requests.post(endpoint, json=payload)
+        try:
+            endpoint = f'http://{self.coreprops["address"]}/bind_game_event'
+            payload = {
+                "game" : "SCREEN_COLOR_SYNC",
+                "event": 'MOUSE_COLOR',
+                "value_optional": r'"true"',
+                "handlers": [
+                    {
+                        "device-type": "mouse",
+                        "zone": "all",
+                        "color": {"red": 0, "green": 0, "blue": 0},
+                        "mode": "context-color",
+                        "context-frame-key": "color"
+                    }
+                ]
+            }
+            r = requests.post(endpoint, json=payload)
+            if not r.status_code == 200:
+                self.logger.warning(f"bind_mouse got status code {r.status_code} and {r.text}")
+                return False
+            else:
+                self.logger.info(f"bind_mouse succeeded")
+                return True
+        except:
+            self.logger.exception()
+            self.remove_mouse()
+            return False
 
     @trypass
+    def remove_mouse(self):
+        self.logger.info("removing mouse binding")
+        endpoint = f'http://{self.coreprops["address"]}/remove_game_event'
+        payload = {
+            "game" : "SCREEN_COLOR_SYNC",
+            "event": 'MOUSE_COLOR'
+        }
+        r = requests.post(endpoint, json=payload)
+        if r.status_code == 200:
+            self.mouse_bound = False
+        else:
+            self.logger.warning(f"remove_mouse got status code {r.status_code} and {r.text}")
+
     def bind_pad_bot(self):
         """Binds a lighting event to Engine."""
-        endpoint = f'http://{self.coreprops["address"]}/bind_game_event'
-        payload = {
-            "game" : "SCREEN_COLOR_SYNC",
-            "event": 'PAD_COLOR_BOT',
-            "value_optional": r'"true"',
-            "handlers": [
-                {
-                    "device-type": "rgb-2-zone",
-                    "zone": "one",
-                    "color": {"red": 0, "green": 0, "blue": 0},
-                    "mode": "context-color",
-                    "context-frame-key": "color"
-                }
-            ]
-        }
-        requests.post(endpoint, json=payload)
+        try:
+            endpoint = f'http://{self.coreprops["address"]}/bind_game_event'
+            payload = {
+                "game" : "SCREEN_COLOR_SYNC",
+                "event": 'PAD_COLOR_BOT',
+                "value_optional": r'"true"',
+                "handlers": [
+                    {
+                        "device-type": "rgb-2-zone",
+                        "zone": "one",
+                        "color": {"red": 0, "green": 0, "blue": 0},
+                        "mode": "context-color",
+                        "context-frame-key": "color"
+                    }
+                ]
+            }
+            r = requests.post(endpoint, json=payload)
+            if not r.status_code == 200:
+                self.logger.warning(f"bind_pad_bot got status code {r.status_code} and {r.text}")
+                return False
+            else:
+                self.logger.info(f"bind_pad_bot succeeded")
+                return True
+        except:
+            self.logger.exception()
+            self.remove_pad_bot()
+            return False
 
     @trypass
-    def bind_pad_top(self):
-        """Binds a lighting event to Engine."""
-        endpoint = f'http://{self.coreprops["address"]}/bind_game_event'
+    def remove_pad_bot(self):
+        self.logger.info("removing pad bot binding")
+        endpoint = f'http://{self.coreprops["address"]}/remove_game_event'
         payload = {
             "game" : "SCREEN_COLOR_SYNC",
-            "event": 'PAD_COLOR_TOP',
-            "value_optional": r'"true"',
-            "handlers": [
-                {
-                    "device-type": "rgb-2-zone",
-                    "zone": "two",
-                    "color": {"red": 0, "green": 0, "blue": 0},
-                    "mode": "context-color",
-                    "context-frame-key": "color"
-                }
-            ]
+            "event": 'PAD_COLOR_BOT'
         }
-        requests.post(endpoint, json=payload)
+        r = requests.post(endpoint, json=payload)
+        if r.status_code == 200:
+            self.pad_bot_bound = False
+        else:
+            self.logger.warning(f"remove_pad_bot got status code {r.status_code} and {r.text}")
+
+    def bind_pad_top(self):
+        """Binds a lighting event to Engine."""
+        try:
+            endpoint = f'http://{self.coreprops["address"]}/bind_game_event'
+            payload = {
+                "game" : "SCREEN_COLOR_SYNC",
+                "event": 'PAD_COLOR_TOP',
+                "value_optional": r'"true"',
+                "handlers": [
+                    {
+                        "device-type": "rgb-2-zone",
+                        "zone": "two",
+                        "color": {"red": 0, "green": 0, "blue": 0},
+                        "mode": "context-color",
+                        "context-frame-key": "color"
+                    }
+                ]
+            }
+            r = requests.post(endpoint, json=payload)
+            if not r.status_code == 200:
+                self.logger.warning(f"bind_pad_top got status code {r.status_code} and {r.text}")
+                return False
+            else:
+                self.logger.info(f"bind_pad_top succeeded")
+                return True
+        except:
+            self.logger.exception()
+            self.remove_pad_top()
+            return False
+
+    @trypass
+    def remove_pad_top(self):
+        self.logger.info("removing pad top binding")
+        endpoint = f'http://{self.coreprops["address"]}/remove_game_event'
+        payload = {
+            "game" : "SCREEN_COLOR_SYNC",
+            "event": 'PAD_COLOR_TOP'
+        }
+        r = requests.post(endpoint, json=payload)
+        if r.status_code == 200:
+            self.pad_top_bound = False
+        else:
+            self.logger.warning(f"remove_pad_top got status code {r.status_code} and {r.text}")
 
     @trypass
     def send_keyboard_event(self, frame):
@@ -196,7 +301,9 @@ class ScreenSync:
                         }
                     }
                 }
-        requests.post(endpoint, json=payload)
+        r = requests.post(endpoint, json=payload)
+        if not r.status_code == 200:
+            self.logger.warning(f"send_keyboard_event got status code {r.status_code} and {r.text}")
 
     @trypass
     def send_pad_event_bot(self, color):
@@ -209,6 +316,8 @@ class ScreenSync:
                             "color": color
                             }}}
         r = requests.post(endpoint, json=payload)
+        if not r.status_code == 200:
+            self.logger.warning(f"send_pad_event_bot got status code {r.status_code} and {r.text}")
 
     @trypass
     def send_pad_event_top(self, color):
@@ -221,6 +330,8 @@ class ScreenSync:
                             "color": color
                             }}}
         r = requests.post(endpoint, json=payload)
+        if not r.status_code == 200:
+            self.logger.warning(f"send_pad_event_top got status code {r.status_code} and {r.text}")
 
     @trypass
     def send_mouse_event(self, color):
@@ -233,18 +344,35 @@ class ScreenSync:
                             "color": color
                             }}}
         r = requests.post(endpoint, json=payload)
+        if not r.status_code == 200:
+            self.logger.warning(f"send_mouse_event got status code {r.status_code} and {r.text}")
+
+    def bind_all(self):
+        self.logger.info(f"attempting to bind all devices")
+        self.keyboard_bound = self.bind_keyboard()
+        self.mouse_bound = self.bind_mouse()
+        self.pad_top_bound = self.bind_pad_top()
+        self.pad_bot_bound = self.bind_pad_bot()
 
     def run(self):
-
+        if self.failed_bind_attempts > 0:
+            self.logger.info(f"relaxing SteelSeries API by waiting for {self.failed_bind_attempts * 5} seconds")
+            time.sleep(self.failed_bind_attempts * 5)
+            if self.failed_bind_attempts > 5:
+                self.failed_bind_attempts = 0
         self.register_game()
-        self.bind_keyboard()
-        self.bind_mouse()
-        self.bind_pad_top()
-        self.bind_pad_bot()
+        self.bind_all()
         self.running = True
 
         while self.running:
             try:
+
+                if not True in [self.keyboard_bound, self.mouse_bound, self.pad_top_bound, self.pad_bot_bound]:
+                    self.logger.warning("no devices are bound, attempting to remove app from SteelSeries and re-register")
+                    self.failed_bind_attempts += 1
+                    self.remove_game()
+                    self.logger.info("restarting ..")
+                    self.run()
 
                 # GET SCREEN IMAGE
                 image = ImageGrab.grab()
@@ -271,20 +399,24 @@ class ScreenSync:
                         self.logger.exception()
                 self.bf.update(sampled_colors)
 
-                if self.fading:
-                    self.send_keyboard_event(self.bf.current_colors)
-                    last = self.bf.current_colors[len(self.bf.current_colors)-1]
-                    mid_bot = self.bf.current_colors[len(self.bf.current_colors)-11]
-                    mid_top = self.bf.current_colors[11]
-                else:
-                    self.send_keyboard_event(sampled_colors)
-                    last = sampled_colors[len(sampled_colors)-1]
-                    mid_bot = sampled_colors[len(sampled_colors)-11]
-                    mid_top = sampled_colors[11]
+                if self.keyboard_bound:
+                    if self.fading:
+                        self.send_keyboard_event(self.bf.current_colors)
+                        last = self.bf.current_colors[len(self.bf.current_colors)-1]
+                        mid_bot = self.bf.current_colors[len(self.bf.current_colors)-11]
+                        mid_top = self.bf.current_colors[11]
+                    else:
+                        self.send_keyboard_event(sampled_colors)
+                        last = sampled_colors[len(sampled_colors)-1]
+                        mid_bot = sampled_colors[len(sampled_colors)-11]
+                        mid_top = sampled_colors[11]
 
-                self.send_mouse_event({"red":last[0], "green":last[1], "blue":last[2]})
-                self.send_pad_event_top({"red":mid_top[0], "green":mid_top[1], "blue":mid_top[2]})
-                self.send_pad_event_bot({"red":mid_bot[0], "green":mid_bot[1], "blue":mid_bot[2]})
+                if self.mouse_bound:
+                    self.send_mouse_event({"red":last[0], "green":last[1], "blue":last[2]})
+
+                if self.pad_top_bound and self.pad_bot_bound:
+                    self.send_pad_event_top({"red":mid_top[0], "green":mid_top[1], "blue":mid_top[2]})
+                    self.send_pad_event_bot({"red":mid_bot[0], "green":mid_bot[1], "blue":mid_bot[2]})
 
                 time.sleep(0.005)
 

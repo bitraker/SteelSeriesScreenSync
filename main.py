@@ -15,6 +15,7 @@ if __name__ == "__main__":
     logger.info("Starting application")
     ss = ScreenSync(logger)
     t_ss = Thread(target=ss.run, args=())
+    t_ss.setDaemon(True)
     t_ss.start()
     app = ScreenSyncApp(ss, logger)
     app.start()

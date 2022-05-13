@@ -1,1 +1,1 @@
-{"speed": 24, "fade": true, "brightness": 100, "low_light": 58, "low_light_enabled": true, "dark_mode": true}
+{"speed": 24, "fade": true, "brightness": 100, "low_light": 58, "low_light_enabled": true, "dark_mode": true, "start_in_tray": true}
