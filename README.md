@@ -33,3 +33,9 @@ The `config.json` file contains the path to the `coreProps.json` file. If your f
 1. Compiled code is relatively large. Perhaps the size of it can be reduced.
 2. At times the SteelSeries API seems to get confused, when opening/closing this app too fast. You can tell by the lighting effects not being applied when the app opens. The solution is to wait for ~10 seconds after closing the app, until the colors return to normal SteelSeries GameSense operation and open the app again.
 3. Sometimes it seems that the app loses connection to SteelSeries GameSense and it reverts to standard behavior. Solution is to reopen the app. I'm investigating and monitoring this, to see if the API gives an indication of this, so I can built in countermeasures, where the app re-registers itself, in case it loses connection.
+
+## Release notes
+### v0.2
+- Added functionality to minimize application to system tray. This setting will be remembered, so the app automatically starts in tray, if setting is enabled.
+- Improved stability
+- Improved logging
