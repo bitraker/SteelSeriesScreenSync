@@ -31,10 +31,13 @@ The `config.json` file contains the path to the `coreProps.json` file. If your f
 
 ## Known issues
 1. Compiled code is relatively large. Perhaps the size of it can be reduced.
-2. Sometimes the app triggers the SteelSeries built-in DDoS protection. Even though the app is not that rough on steelseries. However I'm looking into adjusting some timers, to see if this will mitigate. Also, I have received no reports of this issue, so maybe it's a local problem for me. Unfortunately SteelSeries does not document, what makes it trigger other than "too many events". You can find it in the application.log if it happens.
+2. Sometimes the app triggers the SteelSeries built-in DDoS protection. Unfortunately SteelSeries does not document, what makes it trigger other than "too many events". You can find it in the application.log if it happens.
 
 ## Release notes
 ### v0.2
 - Added functionality to minimize application to system tray. This setting will be remembered, so the app automatically starts in tray, if setting is enabled.
 - Improved stability
 - Improved logging
+
+### v0.3
+- Fixed an unhandled error, where if, code was unable to sample an image from screen (ie) when switching game resolution. It would crash and stop changing colors.
