@@ -375,7 +375,10 @@ class ScreenSync:
                     self.run()
 
                 # GET SCREEN IMAGE
-                image = ImageGrab.grab()
+                try:
+                    image = ImageGrab.grab()
+                except:
+                    continue
 
                 # USE SAMPLE_POINTS X,Y TO SELECT COLORS FROM SCREEN IMAGE
                 sampled_colors = []
