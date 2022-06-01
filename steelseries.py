@@ -1,4 +1,3 @@
-import time
 import json
 import sys
 import requests
@@ -6,6 +5,7 @@ import requests
 from PIL import ImageGrab
 from win32api import GetSystemMetrics
 from tools import BitmapFader, Screen, trypass
+from time import sleep
 
 class ScreenSync:
 
@@ -42,8 +42,8 @@ class ScreenSync:
                                     "low_light_enabled":self.base_color_enforce,
                                     "dark_mode":self.dark_mode,
                                     "start_in_tray":self.start_in_tray}))
-        except:
-            self.logger.exception()
+        except Exception as e:
+            self.logger.error(f"Error when saving setting: {e}")
 
     def load(self):
         try:
@@ -57,33 +57,32 @@ class ScreenSync:
                 self.base_color_enforce = settings["low_light_enabled"]
                 self.dark_mode = settings["dark_mode"]
                 self.start_in_tray = settings["start_in_tray"]
-        except:
-            self.logger.exception()
+        except Exception as e:
+            self.logger.error(f"Error when loading setting: {e}")
 
     def load_preset(self, preset):
         try:
             self.bf.inc = self.presets[preset]["speed"]
             self.fading = self.presets[preset]["fade"]
             self.bf.brightness = self.presets[preset]["brightness"]
-        except:
-            self.logger.exception()
+        except Exception as e:
+            self.logger.error(f"Error when loading preset: {e}")
 
     def load_config(self):
         try:
             with open("config.json", "r") as c:
                 config = json.loads(c.read())
                 self.coreprops_path = config["coreprops_path"]
-        except:
-            self.logger.exception()
+        except Exception as e:
+            self.logger.error(f"Error when loading config: {e}")
 
     def read_coreprops(self, path):
         try:
             with open(path, "r") as c:
                 d = json.loads(c.read())
             return d
-        except:
-            self.logger.error("unable to read coreprops file")
-            self.logger.exception()
+        except Exception as e:
+            self.logger.error(f"Error when loading coreprops: {e}")
             self.running = False
 
     def register_game(self):
@@ -96,9 +95,8 @@ class ScreenSync:
                 "developer" : "Peter Glad (Bitraker)"
             }
             requests.post(endpoint, json=payload)
-        except:
-            self.logger.error("failed registering game")
-            self.logger.exception()
+        except Exception as e:
+            self.logger.error(f"Error when registering game with SteelSeries API: {e}")
             self.running = False
 
     def remove_game(self):
@@ -109,9 +107,8 @@ class ScreenSync:
                 "game" : "SCREEN_COLOR_SYNC"
             }
             requests.post(endpoint, json=payload)
-        except:
-            self.logger.error("failed removing game")
-            self.logger.exception()
+        except Exception as e:
+            self.logger.error(f"Error when removing game from SteelSeries API: {e}")
 
     def bind_keyboard(self):
         """Binds a lighting event to Engine."""
@@ -136,8 +133,8 @@ class ScreenSync:
             else:
                 self.logger.info(f"bind_keyboard succeeded")
                 return True
-        except:
-            self.logger.exception()
+        except Exception as e:
+            self.logger.error(f"Error when binding keyboard: {e}")
             self.remove_keyboard()
             return False
 
@@ -181,8 +178,8 @@ class ScreenSync:
             else:
                 self.logger.info(f"bind_mouse succeeded")
                 return True
-        except:
-            self.logger.exception()
+        except Exception as e:
+            self.logger.error(f"Error when binding mouse: {e}")
             self.remove_mouse()
             return False
 
@@ -225,8 +222,8 @@ class ScreenSync:
             else:
                 self.logger.info(f"bind_pad_bot succeeded")
                 return True
-        except:
-            self.logger.exception()
+        except Exception as e:
+            self.logger.error(f"Error when binding pad bot: {e}")
             self.remove_pad_bot()
             return False
 
@@ -269,8 +266,8 @@ class ScreenSync:
             else:
                 self.logger.info(f"bind_pad_top succeeded")
                 return True
-        except:
-            self.logger.exception()
+        except Exception as e:
+            self.logger.error(f"Error when binding pad top: {e}")
             self.remove_pad_top()
             return False
 
@@ -357,7 +354,7 @@ class ScreenSync:
     def run(self):
         if self.failed_bind_attempts > 0:
             self.logger.info(f"relaxing SteelSeries API by waiting for {self.failed_bind_attempts * 5} seconds")
-            time.sleep(self.failed_bind_attempts * 5)
+            sleep(self.failed_bind_attempts * 5)
             if self.failed_bind_attempts > 5:
                 self.failed_bind_attempts = 0
         self.register_game()
@@ -398,8 +395,9 @@ class ScreenSync:
                                     sampled_colors.append([clr[0],clr[1],clr[2]])
                             else:
                                 sampled_colors.append([clr[0],clr[1],clr[2]])
-                    except:
-                        self.logger.exception()
+                    except Exception as e:
+                        self.logger.error(f"Error working with sample points: {e}")
+                        continue
                 self.bf.update(sampled_colors)
 
                 if self.keyboard_bound:
@@ -421,12 +419,13 @@ class ScreenSync:
                     self.send_pad_event_top({"red":mid_top[0], "green":mid_top[1], "blue":mid_top[2]})
                     self.send_pad_event_bot({"red":mid_bot[0], "green":mid_bot[1], "blue":mid_bot[2]})
 
-                time.sleep(0.005)
+                sleep(0.005)
 
-            except:
-                self.logger.exception()
+            except Exception as e:
+                self.logger.error(f"Error in main loop: {e}")
                 self.remove_game()
-                sys.exit()
+                sleep(10)
+                self.run()
 
         self.remove_game()
         sys.exit()

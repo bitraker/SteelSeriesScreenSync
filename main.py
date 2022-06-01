@@ -1,15 +1,9 @@
-import os
 from steelseries import ScreenSync
 from gui import ScreenSyncApp
 from threading import Thread
 from logger import Logger
 
-try:
-    os.unlink("application.log")
-except:
-    pass
-
-logger = Logger(7,"application.log")
+logger = Logger.rotating_file_logger("ScreenSync","application.log")
 
 if __name__ == "__main__":
     logger.info("Starting application")
