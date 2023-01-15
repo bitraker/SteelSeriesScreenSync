@@ -67,7 +67,7 @@ Select the area of the screen that should be used when sampling colors. After cl
 - Bugfixes and stability improvements.
 
 ### v0.5
-- Credit to (Carson Wilber)[https://github.com/carsonwilber] for adding several new features to the application.
+- Credit to [Carson Wilber](https://github.com/carsonwilber) for adding several new features to the application.
 - Added customizable screen sampling area.
 - Added enhanced rendering that samples an average color rather than a single pixel.
 - Improved low light feature to upscale colors rather than defaulting to a base color.
