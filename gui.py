@@ -16,7 +16,7 @@ from steelseries import ScreenSync
 customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("dark-blue")
 
-class ScreenMappingArea(customtkinter.CTk):
+class ScreenSamplingArea(customtkinter.CTk):
     def __init__(self, screensync: ScreenSync, logger, x = None, y = None, width = None, height = None):
         super().__init__()
 
@@ -129,7 +129,7 @@ class ScreenSyncApp(customtkinter.CTk):
         self.screensync = screensync
         self.logger = logger
         self.dark_mode = True
-        self.screen_mapping_area = None
+        self.screen_sampling_area = None
 
         # SETUP
         self.title("Bitraker - SteelSeries Screen Sync")
@@ -261,11 +261,11 @@ class ScreenSyncApp(customtkinter.CTk):
                                                 command=self.set_kb_height)
         self.slider_kb_height.grid(row=12, column=2, columnspan=2, pady=10, padx=20, sticky="we")
 
-        self.btn_select_mapping_area = customtkinter.CTkButton(master=self.frame,
+        self.btn_select_sampling_area = customtkinter.CTkButton(master=self.frame,
                                                        height=25,
-                                                       text="Select Mapping Area",
-                                                       command=self.select_mapping_area)
-        self.btn_select_mapping_area.grid(row=13, column=0, columnspan=2, pady=10, padx=20, sticky="we")
+                                                       text="Select Sampling Area",
+                                                       command=self.select_sampling_area)
+        self.btn_select_sampling_area.grid(row=13, column=0, columnspan=2, pady=10, padx=20, sticky="we")
 
         self.btn_keyboard_resize = customtkinter.CTkButton(master=self.frame,
                                                        height=25,
@@ -277,22 +277,22 @@ class ScreenSyncApp(customtkinter.CTk):
 
         self.geometry(f"{self.frame.winfo_reqwidth()}x{self.frame.winfo_reqheight()}")
 
-    def select_mapping_area(self):
-        if self.screen_mapping_area is None:
-            self.btn_select_mapping_area.set_text("Accept Mapping Area")
-            self.btn_select_mapping_area.draw()
-            self.screen_mapping_area = ScreenMappingArea(self.screensync, self.logger, **self.screensync.sample if self.screensync.sample else None)
-            self.screen_mapping_area.start()
+    def select_sampling_area(self):
+        if self.screen_sampling_area is None:
+            self.btn_select_sampling_area.set_text("Accept Sampling Area")
+            self.btn_select_sampling_area.draw()
+            self.screen_sampling_area = ScreenSamplingArea(self.screensync, self.logger, **self.screensync.sample if self.screensync.sample else None)
+            self.screen_sampling_area.start()
         else:
-            self.screensync.update_sample_area(self.screen_mapping_area.x0, self.screen_mapping_area.y0, self.screen_mapping_area.x1 - self.screen_mapping_area.x0, self.screen_mapping_area.y1 - self.screen_mapping_area.y0)
-            self.screen_mapping_area.destroy()
-            self.btn_select_mapping_area.set_text("Select Mapping Area")
-            self.btn_select_mapping_area.draw()
-            self.screen_mapping_area = None
+            self.screensync.update_sample_area(self.screen_sampling_area.x0, self.screen_sampling_area.y0, self.screen_sampling_area.x1 - self.screen_sampling_area.x0, self.screen_sampling_area.y1 - self.screen_sampling_area.y0)
+            self.screen_sampling_area.destroy()
+            self.btn_select_sampling_area.set_text("Select Sampling Area")
+            self.btn_select_sampling_area.draw()
+            self.screen_sampling_area = None
 
     def keyboard_resize(self):
-        if self.screen_mapping_area is not None:
-            self.screen_mapping_area.keyboard_resize()
+        if self.screen_sampling_area is not None:
+            self.screen_sampling_area.keyboard_resize()
 
     def toggle_fading(self):
         self.screensync.configure(fade=(self.chk_fade_effect.check_state or False))
