@@ -71,4 +71,4 @@ Select the area of the screen that should be used when sampling colors. After cl
 - Added customizable screen sampling area.
 - Added enhanced rendering that samples an average color rather than a single pixel.
 - Improved low light feature to upscale colors rather than defaulting to a base color.
-- The compiled files is now pretty large and can most likely be improved. Went from 50mb to almost 400mb. This is due to the modules used. There is probably a way to reduce the size. If anyone figure out a way to reduce the compiled footprint. Please share.
+- The compiled files is now pretty large and can most likely be improved. Went from 50mb to almost 400mb. This is due to the modules used. There is probably a way to reduce the size. If anyone figure out a way to reduce the compiled footprint. Please share, because the compiled size is too big to upload to Github. If you want to compile it yourself you can use this command from inside a folder containing the files from the repository: `cxfreeze.exe -c .\main.py --target-dir v05 --copyright Bitraker -O --icon logo.ico -c --target-name ss-screensync.exe --base-name=WIN32GUI --excludes=scipy`
