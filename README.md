@@ -8,8 +8,8 @@ Written in Python3.x on a Windows machine. The application is in a very early al
 
 ## How it works
 
-The application divides the lower half of the screen into a matrix of 6x22 boxes, adding up to a total of 132 boxes (this is the number the SteelSeries per-key bitmap API expects). The color of a center pixel in each of the boxes is sampled. 
-The sampled colors are then applied some logic, so the screen colors can be faded, brightness can be adjusted and a low light setting can be enabled. 
+The application divides the lower half of the screen into a matrix of 6x22 boxes, adding up to a total of 132 boxes (this is the number the SteelSeries per-key bitmap API expects). The color of a center pixel in each of the boxes is sampled.
+The sampled colors are then applied some logic, so the screen colors can be faded, brightness can be adjusted and a low light setting can be enabled.
 The GUI is very simple and should be self explanatory.
 
 ## How to use it
@@ -28,6 +28,27 @@ Check the `application.log`, which is generated in the same folder as the `ss-sc
 When you close the program, you settings are automatically saved to the file `settings.json`. Those settings will be automatically loaded on startup.
 
 The `config.json` file contains the path to the `coreProps.json` file. If your file is not in the standard location. You should edit this file to point to the correct location of the file.
+
+## Options
+
+### **Low Light**
+
+With Low Light enabled, each key color will be upscaled if lower than the threshold determined by the Low Light setting.
+
+### **Fade Effect**
+
+With Fade Effect enabled, colors will gradually transition as determined by the Speed setting. By default, key colors are matched instantaneously.
+### **Enhanced Rendering**
+
+With Enhanced Rendering enabled, each key color is sampled as the average color of the sample area in which it resides. By default, colors are sampled from the center pixel of each region.
+
+### **Keyboard Dimensions**
+
+The predetermined 6x22 grid is applied as a color for each key, starting from the bottom left. Specify the number of rows and columns for your keyboard configuration in order to scale the sampled colors to fit.
+
+### **Sampling Area**
+
+Select the area of the screen that should be used when sampling colors. After clicking *Select Sampling Area*, a second window will appear. By default, the entire screen will be used for sampling, and this screen will appear green. The green area is the sampling area. To change the area, left click the top left of the region to sample and drag to the bottom right corner. To move the sampling area, right click and drag. To resize the sampling area to match the approximate dimensions of your keyboard configuration (to lessen the effect of distortion) middle click or use *Keyboard Resize* in the options window. Return to the options window and *Accept Sampling Area* to apply changes.
 
 ## Known issues
 1. Compiled code is relatively large. Perhaps the size of it can be reduced.

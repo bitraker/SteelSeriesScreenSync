@@ -1,5 +1,6 @@
-Pillow == 8.4.0
-customtkinter == 3.11
-pywin32 == 302
-requests == 2.26.0
-pystray == 0.19.3
+customtkinter==3.11
+numpy==1.24.1
+Pillow==9.4.0
+pystray==0.19.3
+pywin32==302
+requests==2.26.0
