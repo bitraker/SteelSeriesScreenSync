@@ -3,7 +3,7 @@ from gui import ScreenSyncApp
 from threading import Thread
 from logger import Logger
 
-logger = Logger.rotating_file_logger("ScreenSync","application.log")
+logger = Logger.rotating_file_logger("ScreenSync", "application.log")
 
 if __name__ == "__main__":
     logger.info("Starting application")

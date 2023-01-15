@@ -1,70 +1,141 @@
 import json
 import sys
 import requests
+import os
 
-from PIL import ImageGrab
 from win32api import GetSystemMetrics
-from tools import BitmapFader, Screen, trypass
+
+from PIL.Image import Image
+from PIL import ImageGrab
+import win32api
+from tools import BitmapFader, Mapping, trypass
 from time import sleep
+import numpy as np
+
+win32api.EnumDisplaySettings()
 
 class ScreenSync:
 
-    def __init__(self, logger):
+    def __init__(self, logger, speed: int = None, brightness: int = None, low_light: bool = None, tolerance: int = None, fade: bool = None, keyboard: dict = None, enhanced: bool = None, sample: dict = None):
         self.logger = logger
         self.coreprops_path = ""
         self.load_config()
         self.coreprops = self.read_coreprops(self.coreprops_path)
-        self.screen = Screen()
-        self.base_color = [50,50,50]
-        self.base_color_tolerance = 50
-        self.base_color_enforce = False
-        self.bf = BitmapFader()
-        self.running = False
-        self.fading = False
-        self.dark_mode = True
-        self.start_in_tray = False
+
+        self.sample = sample or {
+            'x': 0,
+            'y': 0,
+            'width': GetSystemMetrics(0),
+            'height': GetSystemMetrics(1)
+        }
+
+        self.brightness = brightness or 100
+        self.speed = speed or 100
+        self.low_light = low_light or False
+        self.tolerance = tolerance or 50
+        self.fade = fade or False
+        self.enhanced = enhanced or False
         self.presets = {"smooth":{"speed":8,"fade":True,"brightness":100},
                         "responsive":{"speed":24,"fade":True,"brightness":100},
                         "fast":{"speed":100,"fade":False,"brightness":100}}
+        self.keyboard = keyboard or {'width': 22, 'height': 6}
+
+        self.mapping = Mapping(self.sample, grid=self.keyboard)
+        self.bf = BitmapFader()
+
+        self.dark_mode = True
+        self.start_in_tray = False
+        self.running = False
+
         self.keyboard_bound = False
         self.mouse_bound = False
         self.pad_top_bound = False
         self.pad_bot_bound = False
         self.failed_bind_attempts = 0
 
+    def update_sample_area(self, x, y, width, height):
+        self.sample = {
+            'x': x,
+            'y': y,
+            'width': width,
+            'height': height
+        }
+
+        self.mapping.update_sample_area(x, y, width, height)
+
+    def update_keyboard(self, width, height):
+        self.keyboard = {
+            'width': width,
+            'height': height
+        }
+
+        self.mapping.update_grid(width, height)
+
     def save(self):
         try:
             with open("settings.json", "w") as s:
-                s.write(json.dumps({"speed":self.bf.inc,
-                                    "fade":self.fading,
-                                    "brightness":self.bf.brightness,
-                                    "low_light":self.base_color_tolerance,
-                                    "low_light_enabled":self.base_color_enforce,
-                                    "dark_mode":self.dark_mode,
-                                    "start_in_tray":self.start_in_tray}))
+                s.write(json.dumps({
+                    "options": {
+                        "speed": self.speed,
+                        "fade": self.fade,
+                        "enhanced": self.enhanced,
+                        "brightness": self.brightness,
+                        "low_light": self.low_light,
+                        "tolerance": self.tolerance,
+                        "enhanced": self.enhanced,
+                        "sample": self.sample,
+                        "keyboard": self.keyboard
+                    },
+                    "dark_mode": self.dark_mode,
+                    "start_in_tray": self.start_in_tray
+                }))
         except Exception as e:
             self.logger.error(f"Error when saving setting: {e}")
 
+    def configure(self, speed: int = None, brightness: int = None, low_light: bool = None, tolerance: int = None, fade: bool = None, keyboard: dict = None, enhanced: bool = None, sample: dict = None, **kwargs):
+        if low_light is not None and low_light != self.low_light:
+            self.low_light = low_light
+
+        self.low_light = low_light if low_light is not None else self.low_light
+        self.enhanced = enhanced if enhanced is not None else self.enhanced
+        self.fade = fade if fade is not None else self.fade
+        self.tolerance = tolerance or self.tolerance
+
+        if keyboard is not None and keyboard != self.keyboard:
+            self.update_keyboard(**keyboard)
+
+        if sample is not None and sample != self.sample:
+            self.update_sample_area(**sample)
+
+        if brightness is not None and brightness != self.brightness:
+            self.bf.brightness = brightness
+            self.brightness = brightness
+
+        if speed is not None and speed != self.speed:
+            self.bf.inc = self.speed
+            self.speed = speed
+
+        if kwargs: self.logger.warn("Unknown config settings: " + str(kwargs))
+
     def load(self):
-        try:
-            with open("settings.json", "r") as s:
-                settings = json.loads(s.read())
-                self.bf.inc = settings["speed"]
-                self.bf.brightness = settings["brightness"]
-                self.fading = settings["fade"]
-                self.base_color_tolerance = settings["low_light"]
-                self.base_color = [self.base_color_tolerance,self.base_color_tolerance,self.base_color_tolerance]
-                self.base_color_enforce = settings["low_light_enabled"]
-                self.dark_mode = settings["dark_mode"]
-                self.start_in_tray = settings["start_in_tray"]
-        except Exception as e:
-            self.logger.error(f"Error when loading setting: {e}")
+        if os.path.exists("settings.json"):
+            try:
+                with open("settings.json", "r") as s:
+                    settings = json.loads(s.read())
+                    if 'options' in settings: self.configure(**settings['options'])
+
+                    if 'dark_mode' in settings:
+                        self.dark_mode = settings['dark_mode'] or False
+
+                    if 'start_in_tray' in settings:
+                        self.start_in_tray = settings['start_in_tray'] or False
+
+            except Exception as e:
+                self.logger.error(f"Error when loading setting: {e}")
 
     def load_preset(self, preset):
         try:
-            self.bf.inc = self.presets[preset]["speed"]
-            self.fading = self.presets[preset]["fade"]
-            self.bf.brightness = self.presets[preset]["brightness"]
+            self.configure(**self.presets[preset])
         except Exception as e:
             self.logger.error(f"Error when loading preset: {e}")
 
@@ -351,6 +422,19 @@ class ScreenSync:
         self.pad_top_bound = self.bind_pad_top()
         self.pad_bot_bound = self.bind_pad_bot()
 
+    def apply_mapping(self, image: Image):
+        return [np.mean(np.asarray(image.crop(region[2:])), axis=(0, 1)).astype(int).tolist() for region in self.mapping.sample_grid] if self.enhanced else [image.getpixel(region[:2]) for region in self.mapping.sample_grid]
+
+    def apply_low_light(self, colors):
+        tolerance = 128 * (self.tolerance / 100.)
+        for i, color in enumerate(colors):
+            if sum(color) == 0:
+                colors[i] = [tolerance for _ in range(3)]
+            elif sum(color) // 3 < tolerance:
+                upscale = tolerance / (sum(color) / 3.)
+                colors[i] = list(map(lambda c: min(int(c * upscale), 255), iter(color)))
+        return colors
+
     def run(self):
         if self.failed_bind_attempts > 0:
             self.logger.info(f"relaxing SteelSeries API by waiting for {self.failed_bind_attempts * 5} seconds")
@@ -373,44 +457,36 @@ class ScreenSync:
 
                 # GET SCREEN IMAGE
                 try:
-                    image = ImageGrab.grab()
+                    image = ImageGrab.grab(self.mapping.get_bbox())
                 except:
                     continue
 
                 # USE SAMPLE_POINTS X,Y TO SELECT COLORS FROM SCREEN IMAGE
                 sampled_colors = []
-                for row in self.screen.sample_points:
-                    try:
-                        for sp in row:
-                            clr = image.getpixel((sp[0],sp[1]))
+                try:
+                        sampled_colors = self.apply_mapping(image)
 
-                            # ENFORCING BASE_COLOR, SETS A MINIMUM COLOR OF BUTTONS
-                            # THIS IS GOOD IF YOU ALWAYS WANT SOME LIGHT IN YOUR KEYS
-                            if self.base_color_enforce:
-                                if clr[0] < self.base_color_tolerance and \
-                                clr[1] < self.base_color_tolerance and \
-                                clr[2] < self.base_color_tolerance:
-                                    sampled_colors.append(self.base_color)
-                                else:
-                                    sampled_colors.append([clr[0],clr[1],clr[2]])
-                            else:
-                                sampled_colors.append([clr[0],clr[1],clr[2]])
-                    except Exception as e:
-                        self.logger.error(f"Error working with sample points: {e}")
-                        continue
-                self.bf.update(sampled_colors)
+                        # ENFORCING BASE_COLOR, SETS A MINIMUM COLOR OF BUTTONS
+                        # THIS IS GOOD IF YOU ALWAYS WANT SOME LIGHT IN YOUR KEYS
+                        if self.low_light:
+                            sampled_colors = self.apply_low_light(sampled_colors)
+
+                        self.bf.update(sampled_colors)
+                except Exception as e:
+                    self.logger.error(f"Error working with sample points: {e}")
+                    continue
 
                 if self.keyboard_bound:
-                    if self.fading:
+                    if self.fade:
                         self.send_keyboard_event(self.bf.current_colors)
                         last = self.bf.current_colors[len(self.bf.current_colors)-1]
-                        mid_bot = self.bf.current_colors[len(self.bf.current_colors)-11]
-                        mid_top = self.bf.current_colors[11]
+                        mid_bot = self.bf.current_colors[len(sampled_colors) - (self.keyboard['width'] // 2) - (22 % self.keyboard['width'])]
+                        mid_top = self.bf.current_colors[self.keyboard['width'] // 2]
                     else:
                         self.send_keyboard_event(sampled_colors)
                         last = sampled_colors[len(sampled_colors)-1]
-                        mid_bot = sampled_colors[len(sampled_colors)-11]
-                        mid_top = sampled_colors[11]
+                        mid_bot = sampled_colors[len(sampled_colors) - (self.keyboard['width'] // 2) - (22 % self.keyboard['width'])]
+                        mid_top = sampled_colors[self.keyboard['width'] // 2]
 
                 if self.mouse_bound:
                     self.send_mouse_event({"red":last[0], "green":last[1], "blue":last[2]})
