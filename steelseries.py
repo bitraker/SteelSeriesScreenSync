@@ -112,7 +112,7 @@ class ScreenSync:
             self.brightness = brightness
 
         if speed is not None and speed != self.speed:
-            self.bf.inc = self.speed
+            self.bf.inc = speed
             self.speed = speed
 
         if kwargs: self.logger.warn("Unknown config settings: " + str(kwargs))
