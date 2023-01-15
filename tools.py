@@ -8,7 +8,7 @@ class BitmapFader:
         The GUI controls the speed by changing the inc value.
     """
 
-    def __init__(self):
+    def __init__(self, speed: int = 10, brightness: int = 100):
         self.current_colors = [
             [0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],
             [0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],
@@ -23,9 +23,8 @@ class BitmapFader:
             [0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],
             [0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],
         ]
-        self.inc = 10
-        self.brightness = 100
-
+        self.inc = speed
+        self.brightness = brightness
 
     def update(self, desired_colors):
 

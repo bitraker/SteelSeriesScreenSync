@@ -41,7 +41,7 @@ class ScreenSync:
         self.keyboard = keyboard or {'width': 22, 'height': 6}
 
         self.mapping = Mapping(self.sample, grid=self.keyboard)
-        self.bf = BitmapFader()
+        self.bf = BitmapFader(speed=self.speed)
 
         self.dark_mode = True
         self.start_in_tray = False
@@ -93,9 +93,6 @@ class ScreenSync:
             self.logger.error(f"Error when saving setting: {e}")
 
     def configure(self, speed: int = None, brightness: int = None, low_light: bool = None, tolerance: int = None, fade: bool = None, keyboard: dict = None, enhanced: bool = None, sample: dict = None, **kwargs):
-        if low_light is not None and low_light != self.low_light:
-            self.low_light = low_light
-
         self.low_light = low_light if low_light is not None else self.low_light
         self.enhanced = enhanced if enhanced is not None else self.enhanced
         self.fade = fade if fade is not None else self.fade
@@ -122,6 +119,7 @@ class ScreenSync:
             try:
                 with open("settings.json", "r") as s:
                     settings = json.loads(s.read())
+
                     if 'options' in settings: self.configure(**settings['options'])
 
                     if 'dark_mode' in settings:
