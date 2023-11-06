@@ -2,6 +2,8 @@
 
 An unofficial application that sync screen colors with SteelSeries devices.
 
+Update: The files `SteelSeries ScreenSync.part1.rar` and `SteelSeries ScreenSync.part2.rar` are split due to 25mb limit of Github. They contain a much better compressed version of the v0.5 screensync app.
+
 ## Disclaimer
 
 Written in Python3.x on a Windows machine. The application is in a very early alpha release. I have only had access to my own SteelSeries devices, consisting of a Rival 650 Mouse, QtK Large Mouse Pad and a K750 per-key illuminated keyboard. The code works in my setup on those devices. If you experience problems with your device, please open an issue, so the code can be updated.
